@@ -1,0 +1,777 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+
+{% load static %}
+
+
+<section id="contact">
+
+       <div class="overlay"></div>
+
+     <div class="row narrow section-intro with-bottom-sep animate-this">
+       <div class="col-twelve">
+         <h3>Machine learning Model comparison</h3>
+         <h1>Predicting Track Degradation</h1>
+       </div>
+
+</section> <!-- end header seaction -->
+
+<!-- 
+<section style="background-color:black">
+  <div class="row narrow add-bottom text-center">
+    <h1 style="margin-top: 35px; color:white">
+      Machine learning Models for Track degradation</h1>
+  </div>
+</section> -->
+
+<section style="background-color:white">
+  <div class="row narrow add-bottom">
+    <div id="summary">
+      <h1 style = 'margin-top: 20px;'>Models predicting future Track degradation using C139 Shorncliffe line TRC data</h1>
+
+      <p>Initial analysis of predicting combined track metrics, a measure of track degradation in future quarters using TRC data</p>
+
+      <h2>Contents</h2>
+
+      <ul>
+        <li><a href="#summary">Summary</a></li>
+        <li><a href="#Exploration">Explore data</a></li>
+        <li><a href="#Preprocess">Preprocessing</a></li>
+        <li><a href="#Prediction control">Baseline model</a></li>
+        <li><a href="#Objectives">Objectives</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#ML models">Machine Learning Models</a></li>
+        <li><a href="#future">Predicting Further</a></li>
+        <li><a href="#improvements">Improvements</a></li>
+
+      </ul>
+
+
+      <div id="summary">
+        <h3>Summary</h3>
+        <p>Random forest with 9 features achieved the best test accuracy and highest correlation in comparision to SVR, KNN and ANN. </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Machine Learning Method</th>
+              <th>Best Test accuracy</th>
+              <th>Gradient of best-fit for best model</th>
+              <th>Best test Accuracy "High Priority"</th>
+              <th>Best Correlation "High Priority"</th>
+            </tr>
+          </thead>
+        <tbody>
+          <tr>
+            <td>Random Forest (9 Features)</td>
+            <td>84.35%</td>
+            <td>0.99</td>
+            <td>86.2%</td>
+            <td>0.48</td>
+          </tr>
+          <tr>
+            <td>SVR (20 features, scaled)</td>
+            <td>85.14%</td>
+            <td>0.9</td>
+            <td>85.25%</td>
+            <td>0.2</td>
+          </tr>
+          <tr>
+            <td>KNN (9 features, scaled)</td>
+            <td>82.21%</td>
+            <td>1.02</td>
+            <td>81.64%</td>
+            <td>0.23</td>
+          </tr>
+          <tr>
+            <td>ANN (20 features, scaled)</td>
+            <td>85.88%</td>
+            <td>0.94</td>
+            <td>85.54%</td>
+            <td>0.34</td>
+          </tr>
+        </tbody>
+
+        </table>
+
+        <p>Key findings include:</p>
+        <ol>
+          <li>The target variable (i.e. Combined) can be relatively well approximated as an exponentiated Weibull PDF.</li>
+          <li>Feature selection can be used effectively to reduce the number of features to as few as 9 while still enabling reasonable performance from the ML methods.</li>
+          <li> With robust alignment, utilising the most recent value of the target variable delivered ~80% test accuracy when predicting the target variable in the next quarter.</li>
+          <li>Machine Learning methods such as Random Forests, ANNs and SVR delivered ~3% improvement in prediction accuracy for the following quarter.</li>
+          <li>Over the short time horizon, the ML model prediction accuracy was ~12% higher for the “high priority” points.</li>
+          <li> For the longer prediction horizon of 2 quarters, the baseline method delivered poor estimates, achieving only 52% test accuracy. Its prediction accuracy was only 29% on the “high priority” points in the longer horizon.</li>
+          <li>In the longer prediction horizon, Random Forest achieved 74% test accuracy and 71% accuracy on the “high priority” points. Unlike the baseline prediction method, may be useful for generating longer-term horizon predictions.</li>
+        </ol>
+      </div>
+      </div>
+
+    <div id="Exploration">
+      <h3>Data Exploration</h3>
+      <ul>
+        <li><strong>Scope:</strong>  Shorncliffe 401 line
+          <ul>
+            <li>
+             Track Recording Data (TRC)
+                <ul>
+                  <li>TRC 20170131</li>
+                  <li>TRC 20171017</li>
+                  <li>TRC 20170704</li>
+                  <li>TRC 20180131</li>
+                </ul>
+              </li>
+              <li>
+                Ground penetrating radar (GPR)
+                <ul>
+                  <li>GPR 2018 SF401</li>
+                </ul>
+              </li>
+              <li>
+                Drainage locations C139
+              </li>
+          </ul>
+          </li>
+      </ul>
+<p>
+  <strong>Response Variable:</strong> Combined ≡ (standard deviation(Top Left) + standard deviation(Top Right))/2 + standard deviation(Twist 3) for most recent TRC run (20180131)
+
+</p>
+<h4>Structure of Response Variable</h4>
+<ul>
+  <li>Min: 0.961385</li>
+  <li>Max: 10.094321</li>
+  <li>Mean: 2.874873</li>
+  <li>Standard Deviation: 1.206252</li>
+</ul>
+
+<div class="row">
+  <div class="col-six tab-full">
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_1.png' %}" alt="" >
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_2.png' %}" alt="" width = "290px">
+
+    <p>The distribution resembles an exponentiated Weibull distribution and was found to be closely estimated by the following probability density function:</p>
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_4.png' %}" alt="">
+    <br>
+    <br>
+    <p>The cumulative density function is as follows.</p>
+
+  </div>
+  <div class="col-six tab-full">
+    <p><strong>Distribution of the response variable:</strong>
+    There does not appear to be an obvious structure associated with the response variable e.g. high values of the Combined metric are often preceded by low values in adjacent meterage.</p>
+    <p>
+      <br>
+      <br>
+      The distribution of the response variable is skewed towards lower values of Combined i.e. there are proportionally fewer samples that indicate higher degradation:
+    </p>
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_3.png' %}" alt="" width = '300px'>
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_5.png' %}" alt="">
+
+  </div>
+
+</div>
+  <p>
+  Based on current practice, a threshold for Combined value was set at 4.9 i.e. values above this are of high interest in maintenance decision making: </p>
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_6.png' %}" alt="">
+
+<p>The probability of a sample exceeding this threshold was 7.64% i.e. the dataset is highly biased to samples that are lower than the threshold of interest.
+</p>
+<p>
+A trivial classifier that only predicts {Combined less than threshold} would achieve 92.36% accuracy. It would be more informative to predict the value of the target variable for a future quarter (rather than class). As such, regression was employed.
+</p>
+    </div>
+  <div id="Preprocess">
+    <h3>Pre-processing</h3>
+    <p>Key pre-processing actions include:</p>
+    <table>
+  <tr>
+    <td>Alignment of TRC datasets</td>
+    <td>by minimising the standard deviations in differences between Gauge and Super across the 4 datasets</td>
+  </tr>
+  <tr>
+    <td>Alignment of GPR to TRC</td>
+    <td>using meterage measures</td>
+  </tr>
+  <tr>
+    <td>Calculate standard deviations and the Combined metric</td>
+    <td>across 20 metre sections of TRC measures</td>
+  </tr>
+  <tr>
+    <td>Alignment of drainage points</td>
+    <td>using meterage measures</td>
+  </tr>
+  <tr>
+    <td>Train/test split</td>
+    <td>the dataset was split into training (75%) and test (25%) sets</td>
+  </tr>
+  <tr>
+    <td>Standardisation</td>
+    <td>feature data was standardised to mean 0, standard deviation of 1 (as required by models such as K-NN and SVR)</td>
+  </tr>
+    </table>
+
+  </div>
+<div id="Prediction control">
+    <h3>Prediction Baseline</h3>
+  <p>To establish a baseline model to which other comparisions would be made with </p>
+  <p>Using the most trivial regression model:  63.86%</p>
+  <img src="{% static 'QRvisualisation/images/Analysis/marcus_7.png' %}" alt="">
+
+  <div class="row">
+    <div class="col-six tab-full">
+      <p>The baseline prediction could be improved by projecting the most recent quarter Combined value i.e. . The baseline prediction achieved 80.92% test accuracy.</p>
+      <p>Note, the gradient of line of best fit between predicted and actual  points was only 0.77 (as opposed to the ideal of 1.0), meaning the baseline significantly overestimates the actual Combined value (possibly due to maintenance work undertaken in the quarter).</p>
+      <img src="{% static 'QRvisualisation/images/Analysis/marcus_9.png' %}" alt="">
+    </div>
+      <div class="col-six tab-full">
+          <img src="{% static 'QRvisualisation/images/Analysis/marcus_8.png' %}" alt="">
+          <p>The relatively high test accuracy indicates the TRC alignment process appears to be successful.
+            </p><p>
+The baseline prediction of “high priority” datapoints (i.e. those where prediction and/or actual exceed the threshold), showed a low level of correlation with the actual target values indicating a poor fit.	</p>
+    </div>
+
+  </div>
+  <div class="">
+    <h4>Summary stats</h4>
+    <ul class="stats-tabs">
+      <li><a href="#">80.92%<em>Test accuracy</em></a></li>
+        <li><a href="#">0.06<em>Correlation between “high priority” predicted and actual points</em></a></li>
+      <li><a href="#">0.77<em>Gradient of best-fit for predicted and actual points</em></a></li>
+      <li><a href="#">73.69%<em>Test accuracy “High Priority” data points</em></a></li>
+
+    </ul>
+
+  </div>
+</div>
+<div id="Objectives">
+  <h3>Modelling Objectives</h3>
+  <p>Based on analysis of the baseline predictions, the objectives were defined to be:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Scope</th>
+        <th>Metric 1</th>
+        <th>Metric 2</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>All test data points</td>
+        <td>Prediction accuracy on the (unseen) test dataset</td>
+        <td>Gradient of best-fit between actual and predicted points</td>
+      </tr>
+      <tr>
+        <td>“High Priority” data points</td>
+        <td>Prediction accuracy on “high priority” test dataset</td>
+        <td>Strength of correlation between predicted and actual for “high priority” datapoints</td>
+      </tr>
+    </tbody>
+
+  </table>
+
+  <p>Prediction horizons considered:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Prediction Horizon</th>
+        <th>Scope</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>quarter into the future</td>
+        <td><ul>
+          <li>Baseline prediction accuracy</li>
+          <li> All ML models using all available datasets</li>
+        </ul></td>
+      </tr>
+      <tr>
+        <td>quarters into the future</td>
+        <td>
+          <ul>
+            <li>Baseline prediction accuracy</li>
+            <li>Random Forest Regression using only reduced feature dataset</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+<div id="features">
+  <h3>Feature Selection</h3>
+  <p>The feature selection results are summarised as:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Feature Selection Method</th>
+        <th>Best Test Accuracy</th>
+        <th>Gradient of best-fit for Best Model</th>
+        <th>Best Test Accuracy  “High Priority”</th>
+        <th>Best Correlation “High Priority”</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Linear regression (i.e. investigation of coefficient p-values)</td>
+        <td>83.05%</td>
+        <td>0.98</td>
+        <td>80.52%</td>
+        <td>0.18</td>
+      </tr>
+      <tr>
+        <td>LASSO</td>
+        <td>81.78%</td>
+        <td>1.17</td>
+        <td>80.27%</td>
+        <td>0.22</td>
+      </tr>
+      <tr>
+        <td>Elastic Net</td>
+        <td>83.21%</td>
+        <td>1.01</td>
+        <td>80.74%</td>
+        <td>0.16</td>
+      </tr>
+    </tbody>
+  </table>
+<p>The features selected by the models are as follows:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Linear Regression (“OLS”)</th>
+      <th>LASSO alpha=0.01 (“20”)</th>
+      <th>LASSO alpha=0.1(“9”)
+</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+
+      <td>
+        <ul>
+          <li>BDMCentre</li>
+          <li>BDMRight</li>
+          <li>BVMCentreCategory</li>
+          <li>BVMCentreVolume</li>
+          <li style='background-color:yellow'>BVMLeftCategory</li>
+          <li style='background-color:yellow'>BVMRightCategory</li>
+          <li>Drainage</li>
+          <li style='background-color:yellow'>LRICentre</li>
+          <li style='background-color:yellow'>LRILeft</li>
+          <li style='background-color:yellow'>SDTopLeft1</li>
+          <li style='background-color:yellow'>SDTopLeft2</li>
+          <li style='background-color:green'>SDTopLeft3</li>
+          <li>SDTopRight2</li>
+          <li style='background-color:green'>SDTopRight3</li>
+          <li style='background-color:green'>SDTwist103</li>
+          <li style='background-color:green'>SDTwist33</li>
+          <li style='background-color:yellow'>SDVersL3</li>
+          <li>SDVersR3</li>
+          <li style='background-color:yellow'>TDILeft</li>
+
+        </ul>
+
+</td>
+      <td>
+        <ul>
+
+            <li>BTILeft</li>
+            <li style='background-color:yellow'>BVMLeftCategory</li>
+            <li>BVMLeftVolume</li>
+            <li style='background-color:yellow'>BVMRightCategory</li>
+            <li style='background-color:yellow'>LRICentre</li>
+            <li style='background-color:yellow'>LRILeft</li>
+            <li style='background-color:orange'>PVCCentre</li>
+            <li style='background-color:orange'>PVCLeft</li>
+            <li style='background-color:orange'>PVCRight</li>
+            <li style='background-color:yellow'>SDTopLeft1</li>
+            <li style='background-color:yellow'>SDTopLeft2</li>
+            <li style='background-color:green'>SDTopLeft3</li>
+            <li>SDTopRight1</li>
+            <li style='background-color:green'>SDTopRight3</li>
+            <li>SDTwist101</li>
+            <li style='background-color:green'>SDTwist103</li>
+            <li style='background-color:yellow'>SDTwist33</li>
+            <li style='background-color:orange'>SDVersL1</li>
+            <li style='background-color:yellow'>SDVersL3</li>
+            <li style='background-color:yellow'>TDILeft</li>
+
+        </ul>
+      </td>
+      <td>
+        <ul>
+
+          <li  style='background-color:orange'>PVCCentre</li>
+          <li style='background-color:orange'>PVCLeft</li>
+          <li style='background-color:orange'>PVCRight</li>
+          <li style='background-color:green'>SDTopLeft3</li>
+          <li style='background-color:green'>SDTopRight3</li>
+          <li style='background-color:orange'>SDTwist101</li>
+          <li style='background-color:green'>SDTwist103</li>
+          <li style='background-color:green'>SDTwist33</li>
+          <li style='background-color:orange'>SDVersL1</li>
+
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+
+</table>
+<p>Legend: <span style='background-color:green'>common to all 3</span>, <span style='background-color:yellow'>common between LASSO 20 and OLS</span>, <span style='background-color:orange'>common between LASSOs</span>
+Note the LASSO (alpha = 0.1) coefficients highlight the importance of Top Left, Top Right, Twist 3 (all consistent with the Baseline predictor) and Twist 10:
+</p>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>OLS Feature</th>
+      <th>Coefficient</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PVCCentre</td>
+      <td>-0.000034</td>
+    </tr>
+    <tr>
+      <td>PVCLeft</td>
+      <td>0.000195</td>
+
+    </tr>
+    <tr>
+      <td>PVCRight</td>
+      <td>-0.000156</td>
+    </tr>
+    <tr>
+      <td><strong>SDTopLeft3</strong></td>
+      <td><strong>0.139517</strong></td>
+    </tr>
+    <tr>
+      <td><strong>SDTopRight3</strong></td>
+      <td><strong>0.445248</strong></td>
+    </tr>
+    <tr>
+      <td>SDTwist101</td>
+      <td>0.005967</td>
+    </tr>
+    <tr>
+      <td><strong>SDTwist103</strong></td>
+      <td><strong>0.226816</strong></td>
+    </tr>
+    <tr>
+      <td><strong>SDTwist33</strong></td>
+      <td><strong>0.44012</strong></td>
+    </tr>
+    <tr>
+      <td>SDVersL1</td>
+      <td>0.00097</td>
+    </tr>
+  </tbody>
+</table>
+<p>Bolded are LASSO variables with coefficient > 0.1</p>
+
+
+</div>
+
+<div id="ML models">
+  <h3>Machine Learning Model Comparison</h3>
+  <p>Random Forest, Support vector regression, KNN regression, Artificial nerual networks were implemented with the results summarised below.</p>
+
+
+<div class="row">
+  <h4>Random Forest</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Machine Learning Model</th>
+        <th>Best Test Accuracy</th>
+        <th>Gradient of best-fit for Best Model</th>
+        <th>Best Test Accuracy  “High Priority”</th>
+        <th>Best Correlation “High Priority”</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>All features</td>
+        <td>85.42%</td>
+        <td>1.02</td>
+        <td>84.75%</td>
+        <td>0.3</td>
+      </tr>
+      <tr>
+        <td> “OLS” features</td>
+        <td>85.06%</td>
+        <td>1.01</td>
+        <td>84.39%</td>
+        <td>0.37</td>
+      </tr>
+      <tr>
+        <td>LASSO “20”</td>
+        <td>85.09%</td>
+        <td>1.01</td>
+        <td>85.51%</td>
+        <td>0.33</td>
+      </tr>
+      <tr>
+        <td><strong>LASSO “9”</strong></td>
+        <td><strong>84.35%</strong></td>
+        <td><strong>0.99</strong></td>
+        <td><strong>86.2%</strong></td>
+        <td><strong>0.48</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Results are for unscaled data. Random Forest fitted for 1,000 trees using a random sample of (number of features)1/2.</p>
+
+  <div class="col-six tab-full">
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_10.png' %}" alt="" >
+  </div>
+  <div class="col-six tab-full">
+    <img src="{% static 'QRvisualisation/images/Analysis/marcus_11.png' %}" alt="" >
+  </div>
+</div>
+
+
+<div class="row">
+  <h4>Support Vector Regression (SVR)</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Machine Learning Model</th>
+        <th>Best Test Accuracy</th>
+        <th>Gradient of best-fit for Best Model</th>
+        <th>Best Test Accuracy  “High Priority”</th>
+        <th>Best Correlation “High Priority”</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>All features</td>
+        <td>84.8%</td>
+        <td>0.92</td>
+        <td>84.70%</td>
+        <td>0.03</td>
+      </tr>
+      <tr>
+        <td> “OLS” features</td>
+        <td>83.29%</td>
+        <td>0.89</td>
+        <td>84.72%</td>
+        <td>0.22</td>
+      </tr>
+      <tr>
+        <td><strong>LASSO “20”</strong></td>
+        <td><strong>85.14%</strong></td>
+        <td><strong>0.9</strong></td>
+        <td><strong>85.25%</strong></td>
+        <td><strong>0.2</strong></td>
+      </tr>
+      <tr>
+        <td>LASSO “9”</td>
+        <td>82.9%</td>
+        <td>0.9</td>
+        <td>84.44</td>
+        <td>0.17</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Results are for scaled data and radial basis function (RBF) kernel which outperformed sigmoid and polynomial kernels. Optimal regularisation parameter (C) = 10 i.e. the model traded a relatively small margin for higher training accuracy.</p>
+  <div class="col-six tab-full">
+  <img src="{% static 'QRvisualisation/images/Analysis/marcus_12.png' %}" alt="" >
+  </div>
+  <div class="col-six tab-full">
+  <img src="{% static 'QRvisualisation/images/Analysis/marcus_13.png' %}" alt="" >
+  </div>
+</div>
+
+<div class="row">
+  <h4>K-Nearest Neighbours Regression (KNN)</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Machine Learning Model</th>
+        <th>Best Test Accuracy</th>
+        <th>Gradient of best-fit for Best Model</th>
+        <th>Best Test Accuracy  “High Priority”</th>
+        <th>Best Correlation “High Priority”</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>All features</td>
+        <td>81.68%</td>
+        <td>1.04</td>
+        <td>80.08%</td>
+        <td>0.13</td>
+      </tr>
+      <tr>
+        <td> “OLS” features</td>
+        <td>83.59%</td>
+        <td>0.99</td>
+        <td>83.19%</td>
+        <td>0.08</td>
+      </tr>
+      <tr>
+        <td>LASSO “20”</td>
+        <td>83.33%</td>
+        <td>1.0</td>
+        <td>80.93%</td>
+        <td>0.08</td>
+      </tr>
+      <tr>
+        <td><strong>LASSO “9”</strong></td>
+        <td><strong>82.21%</strong></td>
+        <td><strong>1.02</strong></td>
+        <td><strong>81.64%</strong></td>
+        <td><strong>0.23</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Results are for scaled data using a ball tree algorithm and Manhattan distance.</p>
+    <p>The lack of “elbow” in the Test RMSE versus K plot using all features indicated the target variable, Combined, is not consistently correlated with a similar set of features i.e. the combination of features and response are relatively unique. On this basis, it was not expected that KNN using all features would perform well on the test dataset. This is contrasted with a clear optimal K (15 neighbours) when using only 9 features.</p>
+
+
+  <div class="col-six tab-full">
+<img src="{% static 'QRvisualisation/images/Analysis/marcus_14.png' %}" alt="" >
+  </div>
+  <div class="col-six tab-full">
+<img src="{% static 'QRvisualisation/images/Analysis/marcus_15.png' %}" alt="" >
+  </div>
+</div>
+
+<div class="row">
+  <h4>Artificial Neural Networks (ANN)</h4>
+  <p>ANNs were developed using the KerasRegressor, Sequential (from the Keras library in Python) and MLPRegressor (from sklearn neural_network in Python). Results are shown for the Sequential model implemented with early stopping.</p>
+  <img src="{% static 'QRvisualisation/images/Analysis/marcus_16.png' %}" alt="" >
+
+  <table>
+    <thead>
+      <tr>
+        <th>Machine Learning Model</th>
+        <th>Best Test Accuracy</th>
+        <th>Gradient of best-fit for Best Model</th>
+        <th>Best Test Accuracy  “High Priority”</th>
+        <th>Best Correlation “High Priority”</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>All features</td>
+        <td>85.53%</td>
+        <td>0.88</td>
+        <td>83.09%</td>
+        <td>0.05</td>
+      </tr>
+      <tr>
+        <td> “OLS” features</td>
+        <td>85.33%</td>
+        <td>0.90</td>
+        <td>85.08%</td>
+        <td>0.32</td>
+      </tr>
+      <tr>
+        <td><strong>LASSO “20”</strong></td>
+        <td><strong>85.88%</strong></td>
+        <td><strong>0.94</strong></td>
+        <td><strong>85.54%</strong></td>
+        <td><strong>0.34</strong></td>
+      </tr>
+      <tr>
+        <td>LASSO “9”</td>
+        <td>84.16</td>
+        <td>0.91</td>
+        <td>80.69%</td>
+        <td>0.31</td>
+      </tr>
+    </tbody>
+  </table>
+<p></p>
+<div class="col-six tab-full">
+  <img src="{% static 'QRvisualisation/images/Analysis/marcus_17.png' %}" alt="" >
+</div>
+<div class="col-six tab-full">
+  <img src="{% static 'QRvisualisation/images/Analysis/marcus_18.png' %}" alt="" >
+</div>
+</div>
+
+
+</div>
+<div id="Transformation">
+  <p>It was noted the ML models used a feature dataset that sourced data from different time horizons: GPR (12-months old), TRC (quarterly) and drainage points (relatively fixed).</p>
+  <p>To assess the impact of this, the TRC datasets were replaced with:</p>
+  <ol>
+    <li> the most recent TRC (i.e. prior to that to be estimated) was retained to preserve the most currently known information regarding the features, and</li>
+    <li> derived features intended to capture the rate of change over prior TRC runs, calculated as follows:
+</li>
+      <img src="{% static 'QRvisualisation/images/Analysis/marcus_18.png' %}" alt="" >
+  </ol>
+  <p>where γ is a decay coefficient reducing the impact of historic rates of change. It was noted the most useful rate of change features used γ=0 i.e. only the rate of change between the most recent feature and the corresponding prior TRC feature was used.</p>
+  <p>In general, the ML models did not demonstrate superior performance using this feature transformation approach.</p>
+</div>
+  <div id="future">
+    <h3>Consider Longer Prediction Horizons</h3>
+    <p>Predictions were made for a 2-quarter time horizon. The baseline performance was compared with Random Forest regression. The ML method  clearly outperforms the baseline in the longer time horizon. Additionally, Random Forest produced significantly higher test accuracy on the “high priority” predictions.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Prediction Method</th>
+          <th>Best Test Accuracy</th>
+          <th>Gradient of best-fit for Best Model</th>
+          <th>Best Test Accuracy  “High Priority”</th>
+          <th>Best Correlation “High Priority”</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Baseline</td>
+          <td>51.86%</td>
+          <td>0.23</td>
+          <td>28.78%</td>
+          <td>-0.56</td>
+        </tr>
+        <tr>
+          <td> Random Forest</td>
+          <td>74.19%</td>
+          <td>1.29</td>
+          <td>70.93%</td>
+          <td>0.15</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Random Forest used 9 features, unscaled data.</p>
+
+    <div class="row">
+      <div class="col-six tab-full">
+        <img src="{% static 'QRvisualisation/images/Analysis/marcus_20.png' %}" alt="" >
+        <img src="{% static 'QRvisualisation/images/Analysis/marcus_22.png' %}" alt="" >
+      </div>
+      <div class="col-six tab-full">
+        <img src="{% static 'QRvisualisation/images/Analysis/marcus_21.png' %}" alt="" >
+        <img src="{% static 'QRvisualisation/images/Analysis/marcus_23.png' %}" alt="" >
+      </div>
+
+    </div>
+    <p>It is argued that unlike the baseline method, the Random Forest model produced predictions for 2 future quarters that could be useful.</p>
+
+  </div>
+  <div id="improvements">
+    <p>The following warrant further investigation:</p>
+    <ol>
+      <li>Control for maintenance work (i.e. using work order data) in the ML algorithms</li>
+      <li>Continue experiments in longer-term prediction horizons with a view to optimising the ML methods</li>
+    </ol>
+
+  </div>
+  </div>
+
+</section>
+
+
+
+{% endblock %}

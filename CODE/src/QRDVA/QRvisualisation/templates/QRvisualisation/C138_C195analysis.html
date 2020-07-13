@@ -1,0 +1,127 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+
+{% load static %}
+
+<section id="contact">
+
+       <div class="overlay"></div>
+
+     <div class="row narrow section-intro with-bottom-sep animate-this">
+       <div class="col-twelve">
+         <h3>Zonal and Quarterly analysis on Maintenance Data</h3>
+         <h1>Exploring Maintenance Distribution</h1>
+       </div>
+
+</section> <!-- end header seaction -->
+
+
+<section style="background-color:white">
+  <div class="row narrow add-bottom">
+    <div id="contents">
+      <h1 style = 'margin-top: 20px;'>A Zonal and Quarterly analysis on Work Order (Maintenance) data</h1>
+      <p>Motivation: While budgeting for maintenance for the upcoming year/quarter, or for figuring out zones which have high maintenance count (and hence are more prone to damage), it is quite useful to divide the work order data into zones (track wise) and quarters (time wise). The data has been divided as such, and some analysis has been carried out on it.</p>
+
+      <h2>Contents</h2>
+
+      <ul>
+        <li><a href="#Preprocess">Preprocessing</a></li>
+        <li><a href="#analysis">Analysis</a></li>
+        <li><a href="#summary">Summary</a></li>
+
+      </ul>
+
+      <div id = "Preprocess"class="row">
+        <h3>Data Preprocessing</h3>
+        <p>For each of the work order types, the data has been aggregated into zones and quarters. The values represent the number of times the work order of that type has been carried out. in that zone and that quarter.</p>
+
+        <p>For this experiment, let us take the case of NUM_ZONES =100. The available data is from the beginning of 2014 to mid of 2019. So, in total we have 22 quarters of data.</p>
+
+        <img src="{% static 'QRvisualisation/images/Analysis/rahul_1.png' %}" alt="">
+        <p><em>Figure 1.</em>Processed Data for work order type = 'Mechanised Resurfacing'</p>
+
+
+      </div>
+
+      <div id= "analysis" class="row">
+        <h3>Analysis</h3>
+        <div class="col-six tab-full">
+          <h4>1. Ballast Undercutting</h4>
+          <p>Ballast undercutting is one of the most important and costly maintenance works, it involves lifting the tracks to replace the ballast underneath (figure 2)</p>
+          <p>It seems that the number of work orders for the C138 are far greater than that for C195. Also for C138, it is evident that zone 46-100 undergo considerably heavier maintenance as compared to the other zones. So possibly, these zones suffer from high ballast fouling.</p>
+
+        </div>
+        <div class="col-six tab-full">
+          <img src="{% static 'QRvisualisation/images/Analysis/rahul_2.png' %}" alt="">
+          <p><em>Figure 2.</em> Ballast Undercutting</p>
+        </div>
+
+        </div>
+        <div class="row">
+          <div class="col-six tab-full">
+            <img src="{% static 'QRvisualisation/images/Analysis/rahul_3.png' %}" alt="">
+            <p><em>Figure 3.</em> Ballast undercutting for C195 only occuring in later quarters</p>
+          </div>
+          <div class="col-six tab-full">
+            <img src="{% static 'QRvisualisation/images/Analysis/rahul_4.png' %}" alt="">
+            <p><em>Figure 4.</em> Ballast undercutting for C138 more constant, localised to major qones 46-96</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <h4>Maintenance Ballasting</h4>
+        <div class="col-six tab-full">
+          <img src="{% static 'QRvisualisation/images/Analysis/rahul_5.png' %}" alt="">
+          <p><em>Figure 5.</em> Maintenance ballasting for C195 sparsely distributed across time and track</p>
+
+        </div>
+        <div class="col-six tab-full">
+          <img src="{% static 'QRvisualisation/images/Analysis/rahul_6.png' %}" alt="">
+          <p><em>Figure 6.</em> Maintenance ballasting for C138 concentrated betwen zones 6-41</p>
+        </div>
+
+      </div>
+        <div class="row">
+          <h4>Formation Repairs</h4>
+          <div class="col-six tab-full">
+            <img src="{% static 'QRvisualisation/images/Analysis/rahul_7.png' %}" alt="">
+            <p><em>Figure 7.</em> Only one big instance of formation repairs in C195</p>
+          </div>
+          <div class="col-six tab-full">
+            <img src="{% static 'QRvisualisation/images/Analysis/rahul_8.png' %}" alt="">
+            <p><em>Figure 8.</em> Formation repairs sparsely distributed in C138 data</p>
+
+          </div>
+
+        </div>
+
+        <div class="row">
+
+          <div class="col-six tab-full">
+            <h4>Mechanised Resurfacing</h4>
+            <img src="{% static 'QRvisualisation/images/Analysis/rahul_9.png' %}" alt="">
+            <p><em>Figure 9.</em> Mechanised resurfacing frequently done, well distributed along the length of track, and normally occur in short dinstances covering few zones</p>
+
+          </div>
+          <div class="col-six tab-full">
+            <h4>Total Maintenance Work</h4>
+            <img src="{% static 'QRvisualisation/images/Analysis/rahul_10.png' %}" alt="">
+            <p><em>Figure 10.</em> Total work orders along C195. </p>
+
+          </div>
+
+        </div>
+
+
+      <div id = "summary" class="row">
+
+      </div>
+
+</div>
+</section>
+
+
+
+
+{% endblock %}

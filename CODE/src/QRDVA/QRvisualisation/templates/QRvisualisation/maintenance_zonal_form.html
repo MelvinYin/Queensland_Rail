@@ -1,0 +1,61 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+
+{% load static %}
+
+  <section id="contact">
+
+         <div class="overlay"></div>
+
+   		<div class="row narrow section-intro with-bottom-sep animate-this">
+      		<div class="col-twelve">
+      			<h3>Predict Zone-wise Maintenance</h3>
+				<h1>Select line and quarter</h1>
+
+      			<p class="lead">
+              The maintenance data has been aggregated by length (into 100 zones) and by time (into quarters). This service predicts the total count of work orders (maintenance activities) that is expected to occur in the upcoming quarters, based on historical trends. <br>
+					Select the railway line, and the number of quarters you want predictions for.
+            </p>
+      		</div>
+      	</div> <!-- end section-intro -->
+
+      	<div class="row contact-content">
+
+      		<div class="col-twelve tab-full animate-this">
+
+
+               <!-- form -->
+               <form name="contactForm" enctype="multipart/form-data" method="post">
+                 {% csrf_token %}
+           				{#{form.as_p}#}
+                  <div class="col-six form-field">
+    					   <input name="num_quarters" type="text"  placeholder="number of quarters" {{form.num_quarters}}
+                  </div>
+				   <div class="col-six form-field">
+								   		<input name="line" type="select" placeholder="line to which to predict for (C195/C138)" style="background:rgba(255, 255, 255, 0.1);width: 100%;height: 6rem; border: none">
+<!--									   <input name="line" type="text"  placeholder="line to which to predict for (C195/C138)" {{form.line}}-->
+                  </div>
+
+
+                  </div>
+                  <div class="form-field">
+                     <button class="submitform">Submit</button>
+
+                     <div id="submit-loader">
+                        <div class="text-loader">Sending...</div>
+          			      <div class="s-loader">
+   							  	<div class="bounce1"></div>
+   							  	<div class="bounce2"></div>
+   							  	<div class="bounce3"></div>
+   							</div>
+   						</div>
+                  </div>
+
+         		</form> <!-- end form -->
+
+
+
+   	</section> <!-- end contact -->
+
+{% endblock %}

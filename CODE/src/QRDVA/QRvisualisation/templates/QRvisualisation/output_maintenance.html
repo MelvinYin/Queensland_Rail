@@ -1,0 +1,51 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+{% load static %}
+
+<section id="contact">
+
+       <div class="overlay"></div>
+
+     <div class="row narrow section-intro with-bottom-sep animate-this">
+       <div class="col-twelve">
+         <h3>Predict Maintenance</h3>
+         <h1>Visualise Prediction Results</h1>
+       </div>
+
+</section> <!-- end header seaction -->
+
+<section style="background-color:white;">
+  <div class="row narrow add-bottom">
+    <div class="text-center">
+      <h1  style="margin-top:30px">Results: Predicted Work Orders from User Input Data</h1>
+
+      <p><strong>Model: Random forest</strong>
+      <br>Model outputs predictions on where work orders a likely to occur in the near future
+      <br>Heatmap and geospatial graph illustrate predicted areas where there are potential work orders (red)
+
+
+    </p>
+    </div>
+    <div class="">
+      <p><strong>Metrics:</strong></p>
+      <ul>
+        <li>Input file spans: {{dist}} m</li>
+        <li>Predicted number of points with work orders: {{num_wo}}</li>
+      </ul>
+
+    </div>
+
+  <img src="/CODE/media/pred_heatmap.png" alt="">
+  <div id="output plots">
+    {% include 'QRvisualisation/output.html' %}
+  </div>
+
+
+  </div>
+
+</section>
+
+
+
+{% endblock %}

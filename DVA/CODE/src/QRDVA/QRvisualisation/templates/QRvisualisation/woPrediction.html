@@ -1,0 +1,188 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+
+{% load static %}
+
+<section id="contact">
+
+       <div class="overlay"></div>
+
+     <div class="row narrow section-intro with-bottom-sep animate-this">
+       <div class="col-twelve">
+         <h3>Machine Learning Model Comparison</h3>
+         <h1>Predicting Upcoming Maintenance Needs</h1>
+       </div>
+
+</section> <!-- end header seaction -->
+
+
+<!-- <section style="background-color:black">
+  <div class="row narrow add-bottom text-center">
+    <h1 style="margin-top: 35px; color:white">
+      Predicting Upcoming Maintenance Needs</h1>
+  </div>
+</section> -->
+
+<section style="background-color:white">
+  <div class="row narrow add-bottom">
+    <div id="contents">
+      <h1 style = 'margin-top: 20px;'>Models predicting maintenance needs within the quarter</h1>
+      <p><strong>Motivation:</strong> Can track maintenance over the next quarter be accurately predicted using TRC and GPR readings?</p>
+      <p>Using class-balanced GPR and TRC measures, a random forest supervised learning model achieved a 90% test accuracy in predicting required maintenance over the next quarter.</p>
+      <p>The model performance was reduced in non-balanced test data however, indicating that the variation in measures from track not requiring maintenance may not be accurately captured by the model</p>
+
+      <h2>Contents</h2>
+
+      <ul>
+        <li><a href="#Exploration">Data Exploration</a></li>
+        <li><a href="#Preprocess">Preprocessing</a></li>
+        <li><a href="#ML models">Machine Learning Models</a></li>
+        <li><a href="#Vis">Geospatial Visualisation</a></li>
+        <li><a href="#improvements">Proposed Improvements</a></li>
+      </ul>
+
+</div>
+  <div id="Exploration">
+    <h3>Data Exploration</h3>
+    <p>Dataset provided by QR comprises of 5 unique tables with 2 other aggregated tables for joining:</p>
+    <img src="{% static 'QRvisualisation/images/Analysis/JJ_1.png' %}" alt="">
+    <p>The current report focuses on the measures contained within GPR and TRC datasets in predicting work orders as contained in the data. Analysis was carried out on C138 and C195 lines, as provided by QR. TRC readings for each quarter from 2014 to mid-2019 were included in the analysis</p>
+
+    <h4>Work order distribution</h4>
+    Work orders appear to concentrate in zones (distance: y-axis) across time (quarterly readings: x-axis)
+    <div class="row">
+      <div class="col-six tab-full text-center">
+        <p>C138</p>
+        <img src="{% static 'QRvisualisation/images/Analysis/JJ_2.png' %}" alt="">
+      </div>
+      <div class="col-six tab-full text-center">
+        <p>C195</p>
+        <img src="{% static 'QRvisualisation/images/Analysis/JJ_3.png' %}" alt="">
+      </div>
+
+    </div>
+  </div>
+  <div id="Preprocess">
+    <h3>Preprocessing data before analysis</h3>
+    <p>Prior to analysing the data, preprocessing is required to align the TRC readings, bin work orders into quarters to match with TRC, and finally match TRC with work orders and GPR datasets acorss. A python script has been created to automate this purpose.</p>
+
+    <h4>Aligning TRC</h4>
+    <p>Since TRC readings do drift from run-to-run, any analysis based off cross-sectional data across teh distance of track requires alignment before they can be joined to other measures. TRC was aligned based on GAUGE and SUPER measures, as suggested by QR to be the most precise and accurate measures amongst the 18 TRC readings.</p>
+
+    <p><strong>Steps</strong></p>
+    <ul>
+      <li>For each TRC recording, offset the next quarters' TRC GUAGE and SUPER readings by 50m to start. Take the differene between the values from each quarter and compute standard deviation for the full set of differences</li>
+      <li>Offset the the next quarters' GUAGE and SUPER readings by 1m LESS than the previous iteration, calculate standard deviation</li>
+      <li>Once 100m has been crossed (50m offset both ways), compare all standard deviations for SUPER and GUAGE and see which offset value provided the lowest standard deviation</li>
+      <li>Take the mean offset value (rounded up) with the lowest standard deviation between SUPER and GUAGE</li>
+      <li>Apply the desired offset and move on to the next quarter. Repeat until you reach the end of the dataset</li>
+    </ul>
+
+    <h4>Bin work orders into quarters</h4>
+    <p>Work orders can occur sporadically. To match Work orders with TRC data requires binning of the work orders into periods inbetween TRC runs. This way, matchingg of maintenance work orders ensures that TRC are reflecting the track condition just prior to maintenance work.</p>
+
+    <h4>Matching with GPR data</h4>
+    <p>GPR data was obtained from the 2015 readings. The GPR dataset contains readings from approximately 5m precision, whereas TRC readings had a precision of 1m, and had quarterly readings between 2014 and 2019. Since GPR measures structural properties in the deeper layers of the track, it is treated as a control in this analysis. Joining the GPR readings involved casting the values across distance to make up for the reduced precision, and time to make up for the lack of regular readings.</p>
+
+    <h4>Obtaining the response variable</h4>
+    <p>After alignment and joining the data, the response variable was created by assigning a binary class to areas with or without work orders during a particular period.</p>
+
+    <h4>Balancing the data</h4>
+    <p>A down-sampling of data was done on track that did not undergo maintenance during the quarter succeeding TRC measurements.</p>
+
+    <h4>Train, test split with hold out data</h4>
+    <p>50% of data was partitioned for train and test, while a hold-out set comprising recordings made on: '2018-06-26', '2015-05-15', '2016-06-03', '2019-02-07' for C138, and all recordings for C195, were used to measure model accuracy. This hold-out set was designed to simulate engineers feeding new TRC data into the algorithm for predictions, as opposed to having a pre-balanced set of data. </p>
+
+  </div>
+
+  <div id="ML models">
+    <h3>Machine Learning Models</h3>
+    <p>Supervised learning to predict the presence of work order during the upcoming quarter was attemted using 3 main methods, logistic regression, Support Vector Machines and Random Forest. 5-fold cross-validation and hyperparameter tuning was applied to both SVM and RF models to obtain the model wtih the highest predictive accuracy</p>
+
+      <p>>Predictors were the TRC and GPR readings, while the response variable was the presence or absence of maintenance work during the upcoming quarter after a TRC reading has been made.</p>
+
+    <h4>Summary of model performance on balanced test data</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Test accuracy</th>
+          <th>Test F1 score</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Logistic Regression</td>
+          <td>0.57</td>
+          <td>0.60</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>SVM (base)</td>
+          <td>0.80</td>
+          <td>0.38</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>SVM + cross-validation</td>
+          <td>0.93</td>
+          <td>NA</td>
+          <td>Best model: C= 10, Kernel = 'rbf' training time, ~10h</td>
+        </tr>
+        <tr>
+          <td>Random Forest (Base)</td>
+          <td>0.87</td>
+          <td>0.44</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Random Forest + cross-validation</td>
+          <td>0.89</td>
+          <td>0.40</td>
+          <td>Best model: max depth = 150, n_estimators: 180, training time ~ 3h</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>visualisation of random forest predictions (bottom) vs actual (top) on the balanced test set</p>
+    <img src="{% static 'QRvisualisation/images/Analysis/JJ_4.png' %}" alt="">
+    <p>Although the results are promising for the balanced dataset, predictive performance quickly drops when simulating uploading on intact TRC+GPR data  (accuracy of 65.3%). A reason for this could be that variation in non-maintenance data was inaccurately represented by the training set. There is also a possibility that track maintenance may not follow the same distribution of faults. For example, the increased frequency of positive classifications towards the end of the track recording may be indicative of the deteriorating track condition, however work orders may persist over a larger area to maximise work efficency.
+ </p>
+    <img src="{% static 'QRvisualisation/images/Analysis/JJ_6.png' %}" alt="">
+</div>
+  <div id="Vis">
+    <div class="row">
+
+      <div class="col-six tab-full ">
+        <h3>Proposed visualisation</h3>
+          <p>Apart from a heatmap view, a possible way to visualse the data is through geo-spatial visualisation</p>
+          <div id="improvements">
+            <h3>Proposed Improvements</h3>
+            <ul>
+              <li>Feature engineering. More feature engineering may be helpful to reduce internal correlations that may skew predictions</li>
+              <li>Testing on different type of work orders: although some prelimiary investigation has been done on predicting types of work orders (not shown), further exploration may be helpful towards making meaning ful predictions</li>
+
+            </ul>
+
+          </div>
+      </div>
+        <div class="col-six tab-full text-center">
+          <img src="{% static 'QRvisualisation/images/Analysis/JJ_7.png' %}" alt="">
+
+          </div>
+    </div>
+
+
+
+  </div>
+
+
+
+</div>
+</section>
+
+
+
+
+{% endblock %}

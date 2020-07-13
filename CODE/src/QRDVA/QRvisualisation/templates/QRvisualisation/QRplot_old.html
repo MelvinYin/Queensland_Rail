@@ -1,0 +1,55 @@
+{% extends 'QRvisualisation/base.html' %}
+{% block body_block %}
+{% load static %}
+
+     <!-- bokeh
+    ================================================== -->
+  {{ resources | safe}}
+
+  {{ script | safe }}
+
+    <!-- header -->
+
+
+   <!-- <section id="styles" style="background-color:black;">
+     <div class="row narrow add-bottom text-center" >
+       <div class="col-twelve tab-full" style="margin-top:30px; margin-bottom:0px">
+         <h1 style="color:white; margin-top:30px" >Heatmap Plots</h1>
+         <p class="lead" style="color:white;">Instructions: Use dropdown menu to select the plot or variable you desire</p>
+       </div> -->
+
+       <section id="contact">
+
+              <div class="overlay"></div>
+
+        		<div class="row narrow section-intro with-bottom-sep animate-this">
+           		<div class="col-twelve">
+           			<h3>Visualise Track Data</h3>
+           			<h1>Visualise GPR and Track Geometry</h1>
+           		</div>
+
+   </section> <!-- end header seaction -->
+   {{ additional  }}
+
+   <section id="bokeh-plots" style="background-color:white;">
+     <div class="row narrow add-bottom">
+
+       <div class="text-center">
+
+           <h3>Top plot: Geospatial heatmap of GPR data</h3>        <p>Use dropdown menus and toggles to explore different variables from the 2015 GPR run
+         </p>
+
+
+           <h3>Bottom plot: Track geometry heatmap</h3>
+           <p>Using standard deviation calculations of the combined metric. Select the distance range to view heatmap for particular area.<br>
+           Zoomed in view available by dragging the bar across the main heatmap display <br>
+           Work orders over the distance in colored boxes
+         </p>
+       </div>
+
+
+     {{ div  | safe}}
+</div>
+   </section>
+
+{% endblock %}

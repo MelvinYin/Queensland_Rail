@@ -1,0 +1,38 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+{% load static %}
+
+<section id="contact">
+
+       <div class="overlay"></div>
+
+     <div class="row narrow section-intro with-bottom-sep animate-this">
+       <div class="col-twelve">
+         <h3>Predict Zone-wise Maintenance</h3>
+         <h1>Visualise Prediction Results</h1>
+       </div>
+
+</section> <!-- end header seaction -->
+
+<section style="background-color:white;">
+  <div class="row narrow add-bottom">
+    <div class="text-center">
+      <h1  style="margin-top:30px">Results: Predicted Work Order Count for the Upcoming Quarters</h1>
+
+      <p><strong>Model: Random forest</strong>
+      <br>Heatmap illustrates the work order count for <strong>{{num_quarters}}</strong> upcoming quarters across all <strong>100</strong> zones.
+    </p>
+    </div>
+
+  <img src="/CODE/media/pred_heatmap_maintenance_zonal.png" alt="">
+
+
+
+  </div>
+
+</section>
+
+
+
+{% endblock %}

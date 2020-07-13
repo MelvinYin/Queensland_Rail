@@ -1,0 +1,13 @@
+for 10000 trees :
+
+training RandomForestRegressor
+RF accuracy (unscaled features): 97.82 %.
+RF test score: 0.162
+Out of bag score: 0.1722
+
+for 1000 trees;
+
+training RandomForestRegressor
+RF accuracy (unscaled features): 97.53 %.
+RF test score: 0.161
+Out of bag score: 0.1696

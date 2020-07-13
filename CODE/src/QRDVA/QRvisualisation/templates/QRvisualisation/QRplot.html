@@ -1,0 +1,44 @@
+{% extends 'QRvisualisation/base.html' %}
+{% block body_block %}
+{% load static %}
+
+<section id="contact">
+
+       <div class="overlay"></div>
+
+     <div class="row narrow section-intro with-bottom-sep animate-this">
+       <div class="col-twelve">
+         <h3>Visualise Track Data</h3>
+         <h1>Visualise GPR and Track Geometry</h1>
+       </div>
+
+</section> <!-- end header seaction -->
+
+<section id="bokeh-plots" style="background-color:white;">
+  <div class="text-center">
+  <div class="row narrow add-bottom">
+    <div class="row" style="margin-top:50px">
+      <div class="col-six tab-full">
+        <a href="{% url 'QRvisualisation:outputview' %}" class = "button full_width">Geospatial GPR data</a>
+
+      </div>
+      <div class="col-six tab-full">
+        <a href="{% url 'QRvisualisation:output_trc_vis' %}" class = "button button-primary full_width">Track geometry heatmap</a>
+
+      </div>
+      </div>
+      <h2>Geospatial view of GPR data</h2>
+      <p>Use dropdown menus and toggles to explore different variables from the 2015 GPR run
+</p>
+      {% include "QRvisualisation/gpr_plot.html" %}
+    </div>
+
+
+
+
+  </div>
+
+</section>
+
+
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'QRvisualisation/base.html' %}
+
+{% block body_block %}
+
+{% load static %}
+
+  <section id="contact">
+
+         <div class="overlay"></div>
+
+   		<div class="row narrow section-intro with-bottom-sep animate-this">
+      		<div class="col-twelve">
+      			<h3>Upload TRC data</h3>
+      			<h1>Predict Track Maintenance</h1>
+
+      			<p class="lead">
+              Upload your TRC data (.csv) file here to predict where requires track maintenance in the near future. Some additional information we require: <br>
+
+              1) How many rows to skip before the headings for the columns begin (sample data: 0) <br>
+              2) Track code for this TRC (sample data: 761001)
+            </p>
+      		</div>
+      	</div> <!-- end section-intro -->
+
+      	<div class="row contact-content">
+
+      		<div class="col-twelve tab-full animate-this">
+
+      			<h5>Upload file here</h5>
+
+               <!-- form -->
+               <form name="contactForm" enctype="multipart/form-data" method="post">
+                 {% csrf_token %}
+           				{#{form.as_p}#}
+                  <div class="col-six form-field">
+    					   <input name="skiprows" type="text"  placeholder="Number of rows to skip (sample:0)" {{form.skiprows}}
+                  </div>
+                  <div class="col-six form-field">
+    					   <input name="output_name" type="text"  placeholder="Track Code (sample: 761001)" {{form.output_name}}
+                  </div>
+                  <div class="row">
+                    <center>
+                        <div id="input_1" >
+                            <label class="fileinput_label" for="{{form.TRC_file.id_for_label}}" style="cursor: pointer"><span style="color:black;"><img src= "{% static '/QRvisualisation/rail.svg' %}" style="width:55px;height:55px;border:0;"></img></span></label>
+                            <br>
+                            <input  {{form.TRC_file}} <br>
+                        </div>
+                    </center>
+   		            </div>
+                  </div>
+                  <div class="form-field">
+                     <button class="submitform">Submit</button>
+
+                     <div id="submit-loader">
+                        <div class="text-loader">Sending...</div>
+          			      <div class="s-loader">
+   							  	<div class="bounce1"></div>
+   							  	<div class="bounce2"></div>
+   							  	<div class="bounce3"></div>
+   							</div>
+   						</div>
+                  </div>
+
+         		</form> <!-- end form -->
+
+
+
+   	</section> <!-- end contact -->
+
+{% endblock %}
